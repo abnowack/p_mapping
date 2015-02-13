@@ -14,18 +14,45 @@ Probably best to see if (n,Xn) present and make sure (n,f) occurred first
 [ ] Return initial positions of neutrons which undergo fission, contribute to p
 [ ] Create 3D Plot (x,y,z), 2D Plot (x,y), 1D Plot (r)
 [ ] Extend for multithreading, job management for accurate statistics
+
+Ex: 2 - Collision
+    
 """
 
 from ptrac_reader import ptrac_reader as preader
 from ptrac_reader import ptrac_plotter as pplotter
 
-def is_fission(history):
-    rxn = [ev.ntyn for ev in history.events if hasattr(ev, 'ntyn')]
-    return any([n >= 18 and n <= 21 for n in rxn])
+def incident_fission(history):
+    ''' Indicate whether source neutron underwent fission
+        Elastic and Inelastic scattering is allowed
+        Terminates if encounters
+            type == 5000
+            ntyn != 18-21
+                allowed if
+                ntyn = [1, 2, -99, 50-91]
+            type / 1000 == 2 (not original neutron)
+    '''
+    for ev in history.events:
+        # source
+        if ev.type == 1000:
+            continue
+        # remove termination (no fission) and bank events (extra neutrons made)
+        if ev.type == 5000 or ev.type / 1000 == 2:
+            return False
+        if hasattr(ev, 'ntyn'):
+            # fission
+            if ev.ntyn >= 18 and ev.ntyn <= 21:
+                return True
+            # allowed scatters before fission
+            if ev.ntyn in [1, 2, -99] or (ev.ntyn >= 50 and ev.ntyn <= 91):
+                continue
+#        else:
+            # unhandled cases, surface events
+#            print 'unhandled'
 
-def is_nXn(history):
-    rxn = [ev.ntyn for ev in history.events if hasattr(ev, 'ntyn')]
-    return any([(n >= 11 and n <= 17) or (n >= 22 and n <= 91) for n in rxn])
+    print 'exited loop'
+    print ev
+    return False
 
 if __name__ == '__main__':
     with open('ptrac', 'r') as ptrac:
@@ -34,19 +61,12 @@ if __name__ == '__main__':
         input_format = preader.ptrac_input_format(ptrac)
         event_format = preader.ptrac_event_format(ptrac)
 
-        # extend to all events in file
-        for i in xrange(99):
-            history = preader.parse_ptrac_events(ptrac, event_format)
-            print i, is_fission(history), is_nXn(history)
-        
-        # parse a single event
-#        while history = preader.parse_ptrac_events(ptrac, event_format):
-#        for i in range(105):
+        for history in preader.parse_ptrac_events(ptrac, event_format):
+            print incident_fission(history)
+
+#        for i in xrange(23):
 #            history = preader.parse_ptrac_events(ptrac, event_format)
-#            print i, nbranches(history)
-#        
-#        for i in xrange(7):
-#            history = preader.parse_ptrac_events(ptrac, event_format)
-#        print history
-#        print nbranches(history)
-#        pplotter.plot_events(history.events, False, False)
+##        print history
+#        print incident_fission(history)
+##        print history
+#        pplotter.plot_events(history.events)
