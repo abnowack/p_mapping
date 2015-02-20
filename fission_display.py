@@ -7,13 +7,13 @@ Created on Wed Feb 11 11:09:28 2015
 Still need to exclude (n,Xn) occuring before (n,f)
 Probably best to see if (n,Xn) present and make sure (n,f) occurred first
 
-[ ] Track reactions of first branch, does first branch = incident and scattered
-    neutron?
-[ ] Test if first branch undergoes fission, otherwise skip
-[ ] Loop over entire file without specifying length
-[ ] Return initial positions of neutrons which undergo fission, contribute to p
-[ ] Create 3D Plot (x,y,z), 2D Plot (x,y), 1D Plot (r)
-[ ] Extend for multithreading, job management for accurate statistics
+[ ] Histogram with error bars for 1D plotting
+[ ] Output results to file
+[ ] Display from file
+[ ] Modify input card to filter out non-fission events
+[ ] Plot 2D Slice (spherical)
+[ ] Parameterize run over enrichment
+[ ] Add external reflector
 
 Ex: 2 - Collision
     
@@ -21,6 +21,16 @@ Ex: 2 - Collision
 
 from ptrac_reader import ptrac_reader as preader
 from ptrac_reader import ptrac_plotter as pplotter
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+def uniform_bins(r, n):
+    c = (r / n)**(1./3.)
+    bins = np.ndarray((n+1))
+    for i in xrange(len(bins)):
+        bins[i] = c * np.power(i, 1./3.)
+    return bins
 
 def incident_fission(history):
     ''' Indicate whether source neutron underwent fission
@@ -54,7 +64,9 @@ def incident_fission(history):
     print ev
     return False
 
-if __name__ == '__main__':
+def parse_ptrac_fissions(filename):
+    incident_positions = []
+    
     with open('ptrac', 'r') as ptrac:
         # parse headers and formats
         header = preader.ptrac_header(ptrac)
@@ -62,11 +74,19 @@ if __name__ == '__main__':
         event_format = preader.ptrac_event_format(ptrac)
 
         for history in preader.parse_ptrac_events(ptrac, event_format):
-            print incident_fission(history)
+            is_fission = incident_fission(history)
+            if is_fission:
+                incident_positions.append([history.events[0].xxx,
+                                           history.events[0].yyy,
+                                           history.events[0].zzz])    
+    
+    return np.array(incident_positions)
 
-#        for i in xrange(23):
-#            history = preader.parse_ptrac_events(ptrac, event_format)
-##        print history
-#        print incident_fission(history)
-##        print history
-#        pplotter.plot_events(history.events)
+if __name__ == '__main__':
+    fissions = parse_ptrac_fissions('ptrac')
+
+    r = np.sqrt(fissions[:, 0]**2 + fissions[:, 1]**2 + fissions[:, 2]**2)
+    
+    ubins = uniform_bins(1.0, 20)
+    plt.hist(r, bins=ubins)
+    plt.show()
