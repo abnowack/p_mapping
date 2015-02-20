@@ -7,7 +7,7 @@ Created on Wed Feb 11 11:09:28 2015
 Still need to exclude (n,Xn) occuring before (n,f)
 Probably best to see if (n,Xn) present and make sure (n,f) occurred first
 
-[ ] Histogram with error bars for 1D plotting
+[x] Histogram with error bars for 1D plotting
 [ ] Output results to file
 [ ] Display from file
 [ ] Modify input card to filter out non-fission events
@@ -80,13 +80,17 @@ def parse_ptrac_fissions(filename):
                                            history.events[0].yyy,
                                            history.events[0].zzz])    
     
-    return np.array(incident_positions)
+    return np.array(incident_positions), input_format.max[0]
+
+def plot_radial_bins(r, radius, nbins, nps, *args, **kwargs):
+    ubins = uniform_bins(radius, nbins)
+    bins, edges, patches = plt.hist(r, bins=ubins, histtype='stepfilled', alpha=0.5, color='b', linewidth=2)
+    error = np.sqrt(bins)
+    plt.errorbar((edges[1:]+edges[:-1])/2., bins, yerr=error, fmt='none', color='b', alpha=0.5, linewidth=2)
+    plt.ylim(ymin=0)
+    plt.show()
 
 if __name__ == '__main__':
-    fissions = parse_ptrac_fissions('ptrac')
-
-    r = np.sqrt(fissions[:, 0]**2 + fissions[:, 1]**2 + fissions[:, 2]**2)
-    
-    ubins = uniform_bins(1.0, 20)
-    plt.hist(r, bins=ubins)
-    plt.show()
+    fissions, nps = parse_ptrac_fissions('ptrac')
+    r = np.sqrt(fissions[:, 0]**2. + fissions[:, 1]**2. + fissions[:, 2]**2.)
+    plot_radial_bins(r, 1.0, 20, nps)
