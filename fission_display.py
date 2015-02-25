@@ -51,7 +51,8 @@ def incident_fission(history):
 def parse_ptrac_fissions(filename):
     incident_positions = []
     
-    with open('ptrac', 'r') as ptrac:
+    n_history = 0
+    with open(filename, 'r') as ptrac:
         # parse headers and formats
         header = preader.ptrac_header(ptrac)
         input_format = preader.ptrac_input_format(ptrac)
@@ -62,13 +63,14 @@ def parse_ptrac_fissions(filename):
             if is_fission:
                 incident_positions.append([history.events[0].xxx,
                                            history.events[0].yyy,
-                                           history.events[0].zzz])    
+                                           history.events[0].zzz])
+            n_history += 1
     
-    return np.array(incident_positions), input_format.max[0]
+    return np.array(incident_positions), n_history
 
 if __name__ == '__main__':
     from plot_utils import *
     
-    fissions, nps = parse_ptrac_fissions('ptrac')
+    fissions, nps = parse_ptrac_fissions('tmpjtjmnn/ptrac')
     r = np.sqrt(fissions[:, 0]**2. + fissions[:, 1]**2. + fissions[:, 2]**2.)
     plot_radial_bins(r, 1.0, 20, nps)
