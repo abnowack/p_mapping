@@ -12,7 +12,7 @@ from mcnp_wrapper import *
 from fission_display import *
 
 def uniform_bins(r, n):
-    c = (r / n)**(1./3.)
+    c = r / (n**(1./3.))
     bins = np.ndarray((n+1))
     for i in xrange(len(bins)):
         bins[i] = c * np.power(i, 1./3.)
@@ -49,9 +49,9 @@ C CELL CARDS
 20 0          -1
 
 C SURFACE CARDS
-1 SO 1.0
+1 SO {RADIUS}
 
-M100 92235 0.935 92238 0.065
+M100 92235 {F235} 92238 {F238}
 MODE N
 IMP:N 1 0
 PHYS:N 100 0 0 J J J 0 -1 J J J 0 0
@@ -60,16 +60,37 @@ NPS {NPS}
 PTRAC FILE=ASC WRITE=ALL MAX=50000000
 C UNFIROMLY SAMPLING IN SPHERE
 SDEF ERG=2.0 POS=0 0 0 RAD=D1 CEL=10
-SI1 0 1.0
+SI1 0 {RADIUS}
 SP1 -21 2
 
 """
 
-params = {'NPS': 1000000}
+enrichment = [0.935, 0.90, 0.80, 0.70, 0.60]
+colors = ['b', 'g', 'r', 'c', 'm']
+params = {'NPS': 100000, 'RADIUS': 5.0, 'F235': 0.9, 'F238': 0.1}
+nbins = 20
 
-with run_mcnp(input_card, params=params) as (status, mcnp_dir):
-    fissions, nhistory = parse_ptrac_fissions(mcnp_dir + '\\ptrac')
-    r = np.sqrt(fissions[:, 0]**2. + fissions[:, 1]**2. + fissions[:, 2]**2.)
-    plot_radial_bins(r, 1.0, 20, nhistory)
+ubins = uniform_bins(params['RADIUS'], nbins)
 
-    print fissions.shape[0] / float(nhistory)
+for i, enrich in enumerate(enrichment):
+    with run_mcnp(input_card, params=params, cores=4) as (status, mcnp_dir):
+        params['F235'], params['F238'] = enrich, 1. - enrich
+        label_str = '{:.2%} U235'.format(enrich) 
+        
+        fissions, nhistory = parse_ptrac_fissions(mcnp_dir + '\\ptrac')
+        r = np.sqrt(fissions[:, 0]**2. + fissions[:, 1]**2. + fissions[:, 2]**2.) 
+        
+        vals = np.histogram(r, bins=ubins)[0].astype(float)
+        error = np.sqrt(vals) / float(nhistory) * nbins
+        norm_vals = vals / float(nhistory) * nbins
+        
+        plt.plot(ubins, np.concatenate([norm_vals, [norm_vals[-1]]]), drawstyle='steps-post', color=colors[i], label=label_str)
+        plt.errorbar((ubins[1:] + ubins[:-1])/2., norm_vals, yerr=error, fmt='none', ecolor=colors[i])
+        
+        print fissions.shape[0] / float(nhistory)
+
+plt.ylim(ymin=0)
+plt.xlabel('Radius (cm)')
+plt.ylabel('p (fission probability)')
+plt.legend(loc='best')
+plt.show()
