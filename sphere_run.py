@@ -6,7 +6,7 @@ Created on Wed Feb 25 13:24:03 2015
 """
 
 from mcnp_wrapper import *
-from plot_fission import *
+from plot_utils import *
 from fission_display import *
 
 input_card = \

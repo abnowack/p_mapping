@@ -67,7 +67,7 @@ def parse_ptrac_fissions(filename):
     return np.array(incident_positions), input_format.max[0]
 
 if __name__ == '__main__':
-    from plot_fission import *
+    from plot_utils import *
     
     fissions, nps = parse_ptrac_fissions('ptrac')
     r = np.sqrt(fissions[:, 0]**2. + fissions[:, 1]**2. + fissions[:, 2]**2.)
