@@ -7,30 +7,16 @@ Created on Wed Feb 11 11:09:28 2015
 Still need to exclude (n,Xn) occuring before (n,f)
 Probably best to see if (n,Xn) present and make sure (n,f) occurred first
 
-[x] Histogram with error bars for 1D plotting
-[ ] Output results to file
-[ ] Display from file
-[ ] Modify input card to filter out non-fission events
-[ ] Plot 2D Slice (spherical)
-[ ] Parameterize run over enrichment
-[ ] Add external reflector
-
-Ex: 2 - Collision
+[ ] Separate plotting functions
+[ ] Create mcnp wrapper class
+[ ] Parameterize mcnp card
+[ ] Create iterative run files
     
 """
 
 from ptrac_reader import ptrac_reader as preader
 from ptrac_reader import ptrac_plotter as pplotter
 import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-
-def uniform_bins(r, n):
-    c = (r / n)**(1./3.)
-    bins = np.ndarray((n+1))
-    for i in xrange(len(bins)):
-        bins[i] = c * np.power(i, 1./3.)
-    return bins
 
 def incident_fission(history):
     ''' Indicate whether source neutron underwent fission
@@ -60,8 +46,6 @@ def incident_fission(history):
             # unhandled cases, surface events
 #            print 'unhandled'
 
-    print 'exited loop'
-    print ev
     return False
 
 def parse_ptrac_fissions(filename):
@@ -82,15 +66,9 @@ def parse_ptrac_fissions(filename):
     
     return np.array(incident_positions), input_format.max[0]
 
-def plot_radial_bins(r, radius, nbins, nps, *args, **kwargs):
-    ubins = uniform_bins(radius, nbins)
-    bins, edges, patches = plt.hist(r, bins=ubins, histtype='stepfilled', alpha=0.5, color='b', linewidth=2)
-    error = np.sqrt(bins)
-    plt.errorbar((edges[1:]+edges[:-1])/2., bins, yerr=error, fmt='none', color='b', alpha=0.5, linewidth=2)
-    plt.ylim(ymin=0)
-    plt.show()
-
 if __name__ == '__main__':
+    from plot_fission import *
+    
     fissions, nps = parse_ptrac_fissions('ptrac')
     r = np.sqrt(fissions[:, 0]**2. + fissions[:, 1]**2. + fissions[:, 2]**2.)
     plot_radial_bins(r, 1.0, 20, nps)
