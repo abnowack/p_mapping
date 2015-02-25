@@ -6,6 +6,8 @@ Created on Wed Feb 25 13:24:03 2015
 """
 
 from mcnp_wrapper import *
+from plot_fission import *
+from fission_display import *
 
 input_card = \
 """First Attempt at P Mapping Input Deck
@@ -31,7 +33,6 @@ SP1 -21 2
 """
 
 with run_mcnp(input_card) as (status, mcnp_dir):
-    with open(mcnp_dir + '\\ptrac', 'r') as ptrac:
-        print ptrac.readline()
-        print ptrac.readline()
-        print ptrac.readline()
+    fissions, nps = parse_ptrac_fissions(mcnp_dir + '\\ptrac')
+    r = np.sqrt(fissions[:, 0]**2. + fissions[:, 1]**2. + fissions[:, 2]**2.)
+    plot_radial_bins(r, 1.0, 20, nps)
