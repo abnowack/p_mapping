@@ -62,19 +62,22 @@ C UNFIROMLY SAMPLING IN SPHERE
 SDEF ERG=2.0 POS=0 0 0 RAD=D1 CEL=10
 SI1 0 {RADIUS}
 SP1 -21 2
-
+RAND SEED={SEED}
 """
 
 enrichment = [0.935, 0.90, 0.80, 0.70, 0.60]
 colors = ['b', 'g', 'r', 'c', 'm']
-params = {'NPS': 100000, 'RADIUS': 5.0, 'F235': 0.9, 'F238': 0.1}
+params = {'NPS': 10000, 'RADIUS': 5.0, 'F235': 0.9, 'F238': 0.1, 
+          'SEED': 8675309}
 nbins = 20
 
 ubins = uniform_bins(params['RADIUS'], nbins)
 
 for i, enrich in enumerate(enrichment):
     with run_mcnp(input_card, params=params, cores=4) as (status, mcnp_dir):
+        # update params
         params['F235'], params['F238'] = enrich, 1. - enrich
+        params['SEED'] += 2
         label_str = '{:.2%} U235'.format(enrich) 
         
         fissions, nhistory = parse_ptrac_fissions(mcnp_dir + '\\ptrac')

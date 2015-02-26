@@ -4,14 +4,6 @@ Created on Wed Feb 11 11:09:28 2015
 
 @author: Aaron
 
-Still need to exclude (n,Xn) occuring before (n,f)
-Probably best to see if (n,Xn) present and make sure (n,f) occurred first
-
-[ ] Separate plotting functions
-[ ] Create mcnp wrapper class
-[ ] Parameterize mcnp card
-[ ] Create iterative run files
-    
 """
 
 from ptrac_reader import ptrac_reader as preader
