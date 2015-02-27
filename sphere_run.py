@@ -41,29 +41,9 @@ def plot_radial_bins(r, radius, nbins, nps, *args, **kwargs):
 
     plt.ylim(ymin=0)
     plt.show()
-
-input_card = \
-"""First Attempt at P Mapping Input Deck
-C CELL CARDS
-10 100 -18.74 -1
-20 0           1
-
-C SURFACE CARDS
-1 SO {RADIUS}
-
-M100 92235 {F235} 92238 {F238}
-MODE N
-IMP:N 1 0
-PHYS:N 100 0 0 J J J 0 -1 J J J 0 0
-FMULT 92235 METHOD=5
-NPS {NPS}
-PTRAC FILE=ASC WRITE=ALL MAX=50000000
-C UNFIORMLY SAMPLING IN SPHERE
-SDEF ERG=2.0 POS=0 0 0 RAD=D1 CEL=10
-SI1 0 {RADIUS}
-SP1 -21 2
-RAND SEED={SEED}
-"""
+    
+with open('input_cards/sphere.i', 'r') as cardfile:
+    card = cardfile.read()
 
 enrichment = [0.935, 0.90, 0.80, 0.70, 0.60]
 colors = ['b', 'g', 'r', 'c', 'm']
@@ -74,7 +54,7 @@ nbins = 20
 ubins = uniform_bins(params['RADIUS'], nbins)
 
 for i, enrich in enumerate(enrichment):
-    with run_mcnp(input_card, params=params, cores=4) as (status, mcnp_dir):
+    with run_mcnp(card, params=params, cores=4) as (status, mcnp_dir):
         # update params
         params['F235'], params['F238'] = enrich, 1. - enrich
         params['SEED'] += 2
