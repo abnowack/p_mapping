@@ -23,24 +23,23 @@ with open('input_cards/cylinder_reflect.i', 'r') as cardfile:
 n_radial_bins = 5
 n_phi_bins = 20
 
-radial_bins = radial_bins(4., 5., n_radial_bins)
-phi_bins = np.linspace(0, 2*np.pi, n_phi_bins)
+radial_bins = radial_bins(4.445, 6.35, n_radial_bins)
+phi_bins = np.linspace(-np.pi, np.pi, n_phi_bins)
 radial_mesh, phi_mesh = np.meshgrid(radial_bins, phi_bins)
 
 nbins = n_radial_bins * n_phi_bins
 
-fig, ax = plt.subplots(subplot_kw=dict(projection='polar'))
-
 with run_mcnp(card, cores=4, clean=False) as (status, mcnp_dir):  
     fissions, nhistory = parse_ptrac_fissions(mcnp_dir + '\\ptrac')
     r = np.sqrt(fissions[:, 0]**2. + fissions[:, 1]**2.)
-    phi = np.arctan2(fissions[:,1], fissions[:,0]) + np.pi
+    phi = np.arctan2(fissions[:,1], fissions[:,0])
     
     hist, xedges, yedges = np.histogram2d(r, phi, bins=[radial_bins, phi_bins]) 
     hist = hist / float(nhistory) * nbins
 
-    quadmesh = ax.pcolormesh(yedges, xedges, hist)
-    print fissions.shape[0] / float(nhistory)
+fig, ax = plt.subplots(subplot_kw=dict(projection='polar'))
+quadmesh = ax.pcolormesh(yedges, xedges, hist)
+print fissions.shape[0] / float(nhistory)
 
 plt.colorbar(quadmesh,ax=ax)
 plt.show()
