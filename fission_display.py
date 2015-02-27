@@ -6,8 +6,8 @@ Created on Wed Feb 11 11:09:28 2015
 
 """
 
-from ptrac_reader import ptrac_reader as preader
-from ptrac_reader import ptrac_plotter as pplotter
+from mcnpy.ptrac import reader as preader
+from mcnpy.ptrac import plotter as pplotter
 import numpy as np
 
 def incident_fission(history):

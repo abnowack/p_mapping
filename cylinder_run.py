@@ -8,7 +8,7 @@ Created on Thu Feb 26 12:49:11 2015
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from mcnp_wrapper import *
+from mcnpy.mcnp_wrapper import *
 from fission_display import *
 
 def radial_bins(r_min, r_max, n):
@@ -31,7 +31,7 @@ nbins = n_radial_bins * n_phi_bins
 
 fig, ax = plt.subplots(subplot_kw=dict(projection='polar'))
 
-with run_mcnp(card, cores=4) as (status, mcnp_dir):  
+with run_mcnp(card, cores=4, clean=False) as (status, mcnp_dir):  
     fissions, nhistory = parse_ptrac_fissions(mcnp_dir + '\\ptrac')
     r = np.sqrt(fissions[:, 0]**2. + fissions[:, 1]**2.)
     phi = np.arctan2(fissions[:,1], fissions[:,0]) + np.pi
